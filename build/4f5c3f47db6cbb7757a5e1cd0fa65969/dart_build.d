@@ -1,0 +1,1 @@
+ c:\\repositorioflutter\\cifras\\build\\4f5c3f47db6cbb7757a5e1cd0fa65969\\dart_build_result.json:  C:\\repositorioflutter\\flutter\\bin\\cache\\dart-sdk\\version c:\\repositorioflutter\\cifras\\.dart_tool\\package_config.json c:\\repositorioflutter\\cifras\\pubspec.yaml

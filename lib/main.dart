@@ -6,11 +6,25 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // .env file not found, likely in production
+  }
+
+  const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  const supabaseKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+
+  final url = dotenv.env['SUPABASE_URL'] ?? supabaseUrl;
+  final key = dotenv.env['SUPABASE_ANON_KEY'] ?? supabaseKey;
+
+  if (url.isEmpty || key.isEmpty) {
+    throw Exception('Supabase URL and Key must be provided via .env or --dart-define');
+  }
 
   await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL']!,
-    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+    url: url,
+    anonKey: key,
   );
 
   runApp(const CifrasApp());
