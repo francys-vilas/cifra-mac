@@ -7858,9 +7858,9 @@ break
 case 2:s=1
 break
 case 5:n=$.aAy().gXF().h(0,"SUPABASE_URL")
-if(n==null)n=""
+if(n==null)n="https://ofnelxlotkrojjfajhh.supabase.co"
 m=$.aAy().gXF().h(0,"SUPABASE_ANON_KEY")
-if(m==null)m=""
+if(m==null)m="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mbmVseGxvdGtyb2pqZmFqaGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1ODU1OTcsImV4cCI6MjA4NjE2MTU5N30.8ZEWA95n9u3Z6aJHMiQUF3PP5LCvDgsIdHWH8R9nlBM"
 if(n.length===0||m.length===0)throw A.i(A.ee("Supabase URL and Key must be provided via .env or --dart-define"))
 s=7
 return A.x(A.akZ(m,n),$async$a0G)
