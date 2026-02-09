@@ -7,6 +7,7 @@ import '../services/supabase_service.dart';
     // Safety check for empty lines or weird positions
 import '../widgets/drag_drop_chord_editor.dart';
 import '../widgets/lyric_line_with_chords.dart';
+import '../widgets/background_wrapper.dart';
 
 class SongViewerScreen extends StatefulWidget {
   final String artist;
@@ -211,9 +212,26 @@ E com cinco ou seis retas
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_song?.title ?? 'Carregando...'),
+    return BackgroundWrapper(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Image.asset('assets/images/mac.jpg', height: 28, width: 28, fit: BoxFit.cover),
+              ),
+              const SizedBox(width: 8),
+              Flexible(child: Text(
+                _song?.title ?? 'Carregando...',
+                overflow: TextOverflow.ellipsis,
+              )),
+            ],
+          ),
         actions: [
           IconButton(
             icon: Icon(_isEditing ? Icons.save : Icons.edit),
@@ -243,28 +261,88 @@ E com cinco ou seis retas
                 : Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      color: Colors.grey[200],
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      width: double.infinity, // Ensure full width background
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6), // Reduced vertical padding
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        border: Border(
+                          bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center, // Center content
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove),
-                            onPressed: () => setState(() => _transposeValue--),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4), // Reduced bottom padding, removed left padding for centering
+                            child: Text(
+                              'Tom:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13, // Slightly smaller font
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
                           ),
-                          Text(
-                            'Tom: ${_transposeValue > 0 ? '+' : ''}$_transposeValue',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                            width: 300, // Constrained width (Content limited)
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade300, width: 1),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.remove_circle_outline, color: Colors.grey.shade600, size: 20), // Smaller icon
+                                  onPressed: () => setState(() => _transposeValue--),
+                                  tooltip: 'Diminuir tom (-1)',
+                                  padding: EdgeInsets.zero, // Tighter click area
+                                  constraints: const BoxConstraints(), // Allow tighter layout
+                                ),
+                                Expanded(
+                                  child: Center(
+                                    child: Text(
+                                      '${_transposeValue > 0 ? '+' : ''}$_transposeValue',
+                                      style: TextStyle(
+                                        fontSize: 16, // Slightly smaller
+                                        fontWeight: FontWeight.bold,
+                                        color: _transposeValue == 0 
+                                            ? Colors.grey.shade800 
+                                            : Colors.blue.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.add_circle_outline, color: Colors.grey.shade600, size: 20), // Smaller icon
+                                  onPressed: () => setState(() => _transposeValue++),
+                                  tooltip: 'Aumentar tom (+1)',
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                                Container(
+                                  height: 20, // Smaller divider
+                                  width: 1,
+                                  color: Colors.grey.shade300,
+                                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                                ),
+                                TextButton.icon(
+                                  onPressed: _transposeValue == 0 ? null : () => setState(() => _transposeValue = 0),
+                                  icon: const Icon(Icons.refresh, size: 16), // Smaller icon
+                                  label: const Text('Resetar', style: TextStyle(fontSize: 13)), // Smaller text
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red.shade400,
+                                    disabledForegroundColor: Colors.grey.shade300,
+                                    padding: const EdgeInsets.symmetric(horizontal: 8), // Tighter padding
+                                    minimumSize: Size.zero, // Allow smaller button
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Shrink wrap
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: () => setState(() => _transposeValue++),
-                          ),
-                          const SizedBox(width: 16),
-                          TextButton(
-                            onPressed: () => setState(() => _transposeValue = 0),
-                            child: const Text('Resetar'),
-                          )
                         ],
                       ),
                     ),
@@ -278,6 +356,7 @@ E com cinco ou seis retas
                     ),
                   ],
                 ),
+      ),
     );
   }
 

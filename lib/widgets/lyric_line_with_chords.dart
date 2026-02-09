@@ -82,12 +82,12 @@ class LyricLineWithChords extends StatelessWidget {
             // Force the stack to be full width
             SizedBox(
               width: availableWidth,
-              height: 34, // Height of padding (30) + text line (approx 4 for spacing)
+              height: 48, // Height: chord area (24) + padding (4) + text line (~20)
             ),
             
             // Lyrics layer (Non-positioned determines size)
             Padding(
-              padding: EdgeInsets.only(top: 30, left: paddingLeft),
+              padding: EdgeInsets.only(top: 28, left: paddingLeft),
               child: Text(
                 lyricText,
                 style: lyricStyle,
@@ -192,13 +192,20 @@ class LyricLineWithChords extends StatelessWidget {
         final isCandidate = candidateData.isNotEmpty;
 
         return Container(
-          width: 12,
-          height: 30,
+          width: 24,  // Square for better mobile UX
+          height: 24, // Square - doesn't overlap lyrics below
           decoration: BoxDecoration(
             border: isCandidate
-                ? Border.all(color: Colors.blue, width: 2)
-                : null,
-            color: isCandidate ? Colors.blue.withOpacity(0.1) : null,
+                ? Border.all(color: Colors.blue, width: 3)
+                : (currentChord != null 
+                    ? Border.all(color: Colors.blue.shade200, width: 1)
+                    : null),
+            color: isCandidate 
+                ? Colors.blue.withOpacity(0.2)
+                : (currentChord != null
+                    ? Colors.blue.withOpacity(0.05)
+                    : Colors.transparent),
+            borderRadius: BorderRadius.circular(4),
           ),
           child: currentChord != null
               ? Draggable<Map<String, dynamic>>(
@@ -208,35 +215,48 @@ class LyricLineWithChords extends StatelessWidget {
                     'fromPos': position,
                   },
                   feedback: Material(
-                    elevation: 4,
-                    borderRadius: BorderRadius.circular(16),
+                    elevation: 6,
+                    borderRadius: BorderRadius.circular(20),
                     color: Colors.transparent,
-                    child: Chip(
-                      label: Text(currentChord,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      backgroundColor: Colors.blue.shade100,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade500,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        currentChord,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                   childWhenDragging: const SizedBox.shrink(),
                   child: GestureDetector(
-                    onTap: () => onChordRemoved?.call(lineIndex, position), // Tap to remove (for now, or trigger menu)
-                    onLongPress: () => {}, // Disable long press removal if tap is used, or keep both?
-                    // Actually, let's keep it simple: Tap to remove is dangerous. 
-                    // User said: "abrir uma lixeira no modo edição quando clicar por cima".
-                    // This implies a state change or a menu.
-                    // Let's implement: Tap -> onChordTapped. Parent handles "Trash Mode" or "Menu".
-                    // But I need to update the interface first.
-                    // Let's use onChordRemoved for now as a "Request to Remove".
-                    child: Center(
-                      child: Text(
-                        currentChord,
-                        style: const TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                    onTap: () => onChordRemoved?.call(lineIndex, position),
+                    behavior: HitTestBehavior.opaque, // Makes entire area tappable
+                    child: SizedBox.expand( // Fills entire 24x24px container
+                      child: Center(
+                        child: Text(
+                          currentChord,
+                          style: TextStyle(
+                            color: Colors.blue.shade900,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12, // Slightly smaller to fit in 24px
+                          ),
+                          overflow: TextOverflow.visible,
+                          softWrap: false,
                         ),
-                        overflow: TextOverflow.visible,
-                        softWrap: false,
                       ),
                     ),
                   ),

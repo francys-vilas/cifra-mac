@@ -144,25 +144,39 @@ class _DragDropChordEditorState extends State<DragDropChordEditor> {
     final slashChords = ['G/B', 'D/F#', 'C/E', 'A/C#', 'Em/G'];
     
     return Container(
-      padding: const EdgeInsets.all(8),
-      color: Colors.grey[200],
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Arraste os acordes:', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 8),
+            child: Text(
+              'Arraste os acordes:',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildChordGroup(basicChords, Colors.blue.shade50),
-                const SizedBox(width: 8),
-                _buildChordGroup(minors, Colors.orange.shade50),
-                const SizedBox(width: 8),
-                 _buildChordGroup(sharpsFlats, Colors.purple.shade50),
-                const SizedBox(width: 8),
-                _buildChordGroup(slashChords, Colors.green.shade50),
+                _buildChordGroup('Maiores', basicChords),
+                const SizedBox(width: 12),
+                _buildChordGroup('Menores', minors),
+                const SizedBox(width: 12),
+                _buildChordGroup('Sustenidos', sharpsFlats),
+                const SizedBox(width: 12),
+                _buildChordGroup('Baixos', slashChords),
                 const SizedBox(width: 16),
                 _buildCustomChordInput(),
               ],
@@ -173,82 +187,179 @@ class _DragDropChordEditorState extends State<DragDropChordEditor> {
     );
   }
 
-  Widget _buildChordGroup(List<String> chords, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        children: chords.map((chord) => _buildDraggableChord(chord)).toList(),
-      ),
+  Widget _buildChordGroup(String label, List<String> chords) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 4),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300, width: 1),
+          ),
+          child: Row(
+            children: chords.map((chord) => _buildDraggableChord(chord)).toList(),
+          ),
+        ),
+      ],
     );
   }
   
+  
   Widget _buildDraggableChord(String chord) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
+      padding: const EdgeInsets.only(right: 6.0),
       child: Draggable<Map<String, dynamic>>(
         data: {'chord': chord},
         feedback: Material(
-          elevation: 4,
-          borderRadius: BorderRadius.circular(16),
-          child: Chip(
-            label: Text(chord, style: const TextStyle(fontWeight: FontWeight.bold)),
-            backgroundColor: Colors.blue.shade100,
+          elevation: 6,
+          borderRadius: BorderRadius.circular(20),
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade500,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Text(
+              chord,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Colors.white,
+              ),
+            ),
           ),
         ),
         childWhenDragging: Chip(
           label: Text(chord),
-          backgroundColor: Colors.grey.shade300,
+          backgroundColor: Colors.grey.shade200,
+          labelStyle: TextStyle(color: Colors.grey.shade400),
         ),
         child: Chip(
-          label: Text(chord, style: const TextStyle(fontWeight: FontWeight.bold)),
+          label: Text(
+            chord,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
           backgroundColor: Colors.white,
+          side: BorderSide(color: Colors.grey.shade400, width: 1),
+          labelStyle: TextStyle(color: Colors.grey.shade800),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
       ),
     );
   }
   
+  
   Widget _buildCustomChordInput() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 60,
-          child: TextField(
-            controller: _customChordController,
-            decoration: const InputDecoration(
-              hintText: 'C#m7',
-              isDense: true,
-              contentPadding: EdgeInsets.all(8),
-              border: OutlineInputBorder(),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 4),
+          child: Text(
+            'Personalizado',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade600,
             ),
-            onSubmitted: (value) {
-              if (value.isNotEmpty) {
-                setState(() {}); 
-              }
-            },
           ),
         ),
-        const SizedBox(width: 8),
-        Draggable<Map<String, dynamic>>(
-          data: {'chord': _customChordController.text.isEmpty ? '?' : _customChordController.text},
-          feedback: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(16),
-            child: Chip(
-              label: Text(
-                _customChordController.text.isEmpty ? '?' : _customChordController.text,
-                style: const TextStyle(fontWeight: FontWeight.bold)
-              ),
-              backgroundColor: Colors.orange.shade100,
-            ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300, width: 1),
           ),
-          child: Chip(
-            label: const Text('Custom'),
-            backgroundColor: Colors.orange.shade50,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 70,
+                child: TextField(
+                  controller: _customChordController,
+                  decoration: InputDecoration(
+                    hintText: 'C#m7',
+                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                  ),
+                  style: const TextStyle(fontSize: 13),
+                  onSubmitted: (value) {
+                    if (value.isNotEmpty) {
+                      setState(() {}); 
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Draggable<Map<String, dynamic>>(
+                data: {'chord': _customChordController.text.isEmpty ? '?' : _customChordController.text},
+                feedback: Material(
+                  elevation: 6,
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.transparent,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade500,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      _customChordController.text.isEmpty ? '?' : _customChordController.text,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                child: Icon(
+                  Icons.add_circle_outline,
+                  color: Colors.grey.shade700,
+                  size: 28,
+                ),
+              ),
+            ],
           ),
         ),
       ],

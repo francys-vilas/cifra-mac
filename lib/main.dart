@@ -36,7 +36,8 @@ class CifrasApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Cifras App',
+      title: 'Mac Cifras',
+      debugShowCheckedModeBanner: false, // Removed debug banner
       theme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.deepPurple,

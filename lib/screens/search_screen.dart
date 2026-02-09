@@ -5,6 +5,7 @@ import '../services/supabase_service.dart';
 import 'song_viewer_screen.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import '../widgets/background_wrapper.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -111,30 +112,47 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
 
 
 
+
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cifras Compartilhadas'),
-        bottom: TabBar(
+    return BackgroundWrapper(
+      child: Scaffold(
+        backgroundColor: Colors.transparent, // Make scaffold transparent
+        appBar: AppBar(
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset('assets/images/mac.jpg', height: 30, width: 30, fit: BoxFit.cover),
+              ),
+              const SizedBox(width: 8),
+              const Text('Mac Cifras'),
+            ],
+          ),
+          backgroundColor: Colors.transparent, // Make AppBar transparent
+          elevation: 0,
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(icon: Icon(Icons.queue_music), text: 'Cifras'),
+              Tab(icon: Icon(Icons.search), text: 'Buscar Novas'),
+              Tab(icon: Icon(Icons.edit), text: 'Editor'),
+            ],
+          ),
+        ),
+        body: TabBarView(
           controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.queue_music), text: 'Cifras'),
-            Tab(icon: Icon(Icons.search), text: 'Buscar Novas'),
-            Tab(icon: Icon(Icons.edit), text: 'Editor'),
+          children: [
+            // Saved Songs Tab (Cifras)
+            _buildSavedSongsTab(),
+            // Search Tab
+            _buildSearchTab(),
+            // Editor Tab
+            _buildEditorTab(),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Saved Songs Tab (Cifras)
-          _buildSavedSongsTab(),
-          // Search Tab
-          _buildSearchTab(),
-          // Editor Tab
-          _buildEditorTab(),
-        ],
       ),
     );
   }
