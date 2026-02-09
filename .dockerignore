@@ -1,0 +1,34 @@
+# Build directories
+build/
+.dart_tool/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Environment variables
+.env
+.env.local
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+
+# Test files
+test/
+coverage/
+
+# Platform specific
+android/
+ios/
+linux/
+macos/
+windows/
+
+# Other
+*.log
+.DS_Store
