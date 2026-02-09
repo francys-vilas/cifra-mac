@@ -11,10 +11,15 @@ COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get
 
 # Copy the rest of the application
+# Copy the rest of the application
 COPY . .
 
-# Build for web with release mode
-RUN flutter build web --release
+# Receive build arguments
+ARG SUPABASE_URL
+ARG SUPABASE_ANON_KEY
+
+# Build for web with release mode (injecting env vars)
+RUN flutter build web --release --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
