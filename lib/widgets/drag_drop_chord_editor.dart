@@ -119,7 +119,7 @@ class _DragDropChordEditorState extends State<DragDropChordEditor> {
               final line = lines[index];
               final chordLine = _chordLines.firstWhere(
                 (l) => l.lineIndex == index,
-                orElse: () => ChordLine(lineIndex: index, chords: [])
+                orElse: () => ChordLine(lineIndex: index, chords: []),
               );
               
               return LyricLineWithChords(

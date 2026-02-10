@@ -10,11 +10,10 @@ class BackgroundWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Stack(
       children: [
-        // Black Background
-        Container(color: Colors.black),
-        // Content
+        Container(color: isDark ? Colors.black : Colors.white),
         child,
       ],
     );

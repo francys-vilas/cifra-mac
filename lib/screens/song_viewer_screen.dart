@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import '../main.dart';
 import '../models/song.dart';
 import '../models/chord_models.dart';
 import '../services/music_service.dart';
@@ -34,6 +35,7 @@ class _SongViewerScreenState extends State<SongViewerScreen> {
   int _transposeValue = 0;
   bool _isLoading = true;
   bool _isEditing = false;
+  double _fontSize = 16.0;
   late TextEditingController _textController;
   
   // State for structured chords
@@ -234,6 +236,15 @@ E com cinco ou seis retas
           ),
         actions: [
           IconButton(
+            icon: Icon(
+              CifrasApp.of(context)?.isDarkMode == true
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            onPressed: () => CifrasApp.of(context)?.toggleTheme(),
+            tooltip: 'Alternar tema',
+          ),
+          IconButton(
             icon: Icon(_isEditing ? Icons.save : Icons.edit),
             onPressed: () {
               if (_isEditing) {
@@ -261,85 +272,181 @@ E com cinco ou seis retas
                 : Column(
                   children: [
                     Container(
-                      width: double.infinity, // Ensure full width background
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6), // Reduced vertical padding
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[900]
+                            : Colors.grey[100],
                         border: Border(
-                          bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+                          bottom: BorderSide(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey.shade700
+                                : Colors.grey.shade300,
+                            width: 1,
+                          ),
                         ),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center, // Center content
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
+                          // Transposition controls
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 4), // Reduced bottom padding, removed left padding for centering
+                            padding: const EdgeInsets.only(bottom: 4),
                             child: Text(
                               'Tom:',
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 13, // Slightly smaller font
-                                color: Colors.grey.shade700,
+                                fontSize: 13,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade700,
                               ),
                             ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                            width: 300, // Constrained width (Content limited)
+                            width: 300,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey.shade800
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade300, width: 1),
+                              border: Border.all(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey.shade600
+                                    : Colors.grey.shade300,
+                                width: 1,
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.max,
                               children: [
                                 IconButton(
-                                  icon: Icon(Icons.remove_circle_outline, color: Colors.grey.shade600, size: 20), // Smaller icon
+                                  icon: Icon(Icons.remove_circle_outline, size: 20,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade600,
+                                  ),
                                   onPressed: () => setState(() => _transposeValue--),
                                   tooltip: 'Diminuir tom (-1)',
-                                  padding: EdgeInsets.zero, // Tighter click area
-                                  constraints: const BoxConstraints(), // Allow tighter layout
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
                                 ),
                                 Expanded(
                                   child: Center(
                                     child: Text(
                                       '${_transposeValue > 0 ? '+' : ''}$_transposeValue',
                                       style: TextStyle(
-                                        fontSize: 16, // Slightly smaller
+                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: _transposeValue == 0 
-                                            ? Colors.grey.shade800 
+                                            ? (Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.grey.shade300
+                                                : Colors.grey.shade800)
                                             : Colors.blue.shade700,
                                       ),
                                     ),
                                   ),
                                 ),
                                 IconButton(
-                                  icon: Icon(Icons.add_circle_outline, color: Colors.grey.shade600, size: 20), // Smaller icon
+                                  icon: Icon(Icons.add_circle_outline, size: 20,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade600,
+                                  ),
                                   onPressed: () => setState(() => _transposeValue++),
                                   tooltip: 'Aumentar tom (+1)',
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
                                 ),
                                 Container(
-                                  height: 20, // Smaller divider
+                                  height: 20,
                                   width: 1,
-                                  color: Colors.grey.shade300,
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey.shade600
+                                      : Colors.grey.shade300,
                                   margin: const EdgeInsets.symmetric(horizontal: 8),
                                 ),
                                 TextButton.icon(
                                   onPressed: _transposeValue == 0 ? null : () => setState(() => _transposeValue = 0),
-                                  icon: const Icon(Icons.refresh, size: 16), // Smaller icon
-                                  label: const Text('Resetar', style: TextStyle(fontSize: 13)), // Smaller text
+                                  icon: const Icon(Icons.refresh, size: 16),
+                                  label: const Text('Resetar', style: TextStyle(fontSize: 13)),
                                   style: TextButton.styleFrom(
                                     foregroundColor: Colors.red.shade400,
                                     disabledForegroundColor: Colors.grey.shade300,
-                                    padding: const EdgeInsets.symmetric(horizontal: 8), // Tighter padding
-                                    minimumSize: Size.zero, // Allow smaller button
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Shrink wrap
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   ),
                                 )
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          // Font size controls
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                            width: 200,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey.shade800
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey.shade600
+                                    : Colors.grey.shade300,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.text_decrease, size: 18,
+                                    color: _fontSize <= 10
+                                        ? Colors.grey.shade400
+                                        : (Theme.of(context).brightness == Brightness.dark
+                                            ? Colors.grey.shade300
+                                            : Colors.grey.shade700),
+                                  ),
+                                  onPressed: _fontSize <= 10
+                                      ? null
+                                      : () => setState(() => _fontSize -= 2),
+                                  tooltip: 'Diminuir fonte',
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                                Expanded(
+                                  child: Center(
+                                    child: Text(
+                                      'Aa ${_fontSize.toInt()}',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(context).brightness == Brightness.dark
+                                            ? Colors.grey.shade300
+                                            : Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.text_increase, size: 18,
+                                    color: _fontSize >= 28
+                                        ? Colors.grey.shade400
+                                        : (Theme.of(context).brightness == Brightness.dark
+                                            ? Colors.grey.shade300
+                                            : Colors.grey.shade700),
+                                  ),
+                                  onPressed: _fontSize >= 28
+                                      ? null
+                                      : () => setState(() => _fontSize += 2),
+                                  tooltip: 'Aumentar fonte',
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
                               ],
                             ),
                           ),
@@ -360,42 +467,7 @@ E com cinco ou seis retas
     );
   }
 
-  void _onChordAdded(int lineIndex, int position, Map<String, dynamic> data) {
-    setState(() {
-      // Find or create the chord line
-      var line = _chordLines.firstWhere(
-        (l) => l.lineIndex == lineIndex,
-        orElse: () {
-          final newLine = ChordLine(lineIndex: lineIndex, chords: []);
-          _chordLines.add(newLine);
-          return newLine;
-        },
-      );
-
-      // Remove existing chord at same position if any
-      line.chords.removeWhere((c) => c.position == position);
-
-      // Add new chord
-      line.chords.add(ChordPosition(
-        position: position,
-        chord: data['chord'] ?? '?',
-      ));
-    });
-  }
-
-  void _onChordRemoved(int lineIndex, int position) {
-    setState(() {
-      final line = _chordLines.firstWhere(
-        (l) => l.lineIndex == lineIndex,
-        orElse: () => ChordLine(lineIndex: lineIndex, chords: []),
-      );
-      
-      line.chords.removeWhere((c) => c.position == position);
-    });
-  }
-
   Widget _buildLyricsView() {
-
     // Visualization mode using the new structured data
     
     // Apply transposition
@@ -408,40 +480,58 @@ E com cinco ou seis retas
     
     return LayoutBuilder(
       builder: (context, constraints) {
-        return Container(
-          constraints: BoxConstraints(minWidth: constraints.maxWidth),
-          child: ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: lines.length,
-            itemBuilder: (context, index) {
-              final line = lines[index];
-              final chordLine = displayChords.firstWhere(
-                (l) => l.lineIndex == index,
-                orElse: () => ChordLine(lineIndex: index, chords: []),
-              );
-              
-              return LyricLineWithChords(
-                lineIndex: index,
-                lyricText: line,
-                chordLine: chordLine,
-                onChordAdded: _isEditing ? _onChordAdded : null,
-                onChordRemoved: _isEditing ? _onChordRemoved : null,
-                readOnly: !_isEditing,
-                layoutWidth: maxLineWidth,
-              );
-            },
-          ),
+        final viewportWidth = constraints.maxWidth;
+        final needsHorizontalScroll = maxLineWidth > viewportWidth;
+        // Horizontal padding for centering when content is narrower than viewport
+        final horizontalPadding = needsHorizontalScroll
+            ? 0.0
+            : (viewportWidth - maxLineWidth) / 2;
+
+        Widget content = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: List.generate(lines.length, (index) {
+            final line = lines[index];
+            final chordLine = displayChords.firstWhere(
+              (l) => l.lineIndex == index,
+              orElse: () => ChordLine(lineIndex: index, chords: []),
+            );
+            
+            return LyricLineWithChords(
+              lineIndex: index,
+              lyricText: line,
+              chordLine: chordLine,
+              readOnly: true,
+              layoutWidth: maxLineWidth,
+              fontSize: _fontSize,
+            );
+          }),
         );
+
+        if (needsHorizontalScroll) {
+          // Content is wider than viewport: allow horizontal scroll
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: maxLineWidth,
+              child: content,
+            ),
+          );
+        } else {
+          // Content fits: center it with padding
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+            child: content,
+          );
+        }
       },
     );
   }
 
   double _calculateMaxLineWidth(List<String> lines, BuildContext context) {
     double maxWidth = 0.0;
-    const style = TextStyle(
+    final style = TextStyle(
       fontFamily: 'monospace',
-      fontSize: 16,
+      fontSize: _fontSize,
       height: 1.0,
     );
     

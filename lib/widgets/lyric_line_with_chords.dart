@@ -9,6 +9,7 @@ class LyricLineWithChords extends StatelessWidget {
   final Function(int lineIndex, int position)? onChordRemoved;
   final bool readOnly;
   final double? layoutWidth;
+  final double fontSize;
 
   const LyricLineWithChords({
     super.key,
@@ -19,6 +20,7 @@ class LyricLineWithChords extends StatelessWidget {
     this.onChordRemoved,
     this.readOnly = false,
     this.layoutWidth,
+    this.fontSize = 16.0,
   });
 
   @override
@@ -37,10 +39,13 @@ class LyricLineWithChords extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate character positions using TextPainter
-        final lyricStyle = const TextStyle(
+        final lyricStyle = TextStyle(
           fontFamily: 'monospace',
-          fontSize: 16,
+          fontSize: fontSize,
           height: 1.0,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.black87,
         );
 
         final textPainter = TextPainter(
@@ -49,45 +54,45 @@ class LyricLineWithChords extends StatelessWidget {
         )..layout();
 
         // Calculate character width (assuming monospace)
-        // Measure 'M' to get standard width
         final charWidthPainter = TextPainter(
           text: TextSpan(text: 'M', style: lyricStyle),
           textDirection: TextDirection.ltr,
         )..layout();
         final charWidth = charWidthPainter.width;
 
-        // Calculate max slots based on available width
-        // Use constraints.maxWidth if finite, otherwise default to text length + buffer
         final double availableWidth = constraints.maxWidth.isFinite 
             ? constraints.maxWidth 
-            : textPainter.width + 100; // Fallback if unbounded
+            : textPainter.width + 100;
             
-        // Calculate generic centering offset based on layoutWidth (max block width)
         double paddingLeft = 0;
         if (layoutWidth != null && availableWidth > layoutWidth!) {
           paddingLeft = (availableWidth - layoutWidth!) / 2;
         }
 
-        // Calculate effective start and end slots
-        // We want to cover from 0 to availableWidth in pixels
-        // pixel = paddingLeft + slot * charWidth
-        // slot = (pixel - paddingLeft) / charWidth
         final int minSlot = (-paddingLeft / charWidth).floor();
         final int maxSlot = ((availableWidth - paddingLeft) / charWidth).ceil();
+
+        // Dynamic heights based on fontSize
+        final double baseChordHeight = fontSize * 1.5;
+        // In edit mode (!readOnly), drag targets are 32.0 height. 
+        // Ensure minimal height to prevent overlap with text.
+        final double chordAreaHeight = !readOnly && baseChordHeight < 36.0 
+            ? 36.0 
+            : baseChordHeight;
+
+        final double topPadding = chordAreaHeight + 4;
+        final double totalHeight = topPadding + fontSize + 8;
         
-        // Build the stack with positioned chords
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            // Force the stack to be full width
             SizedBox(
               width: availableWidth,
-              height: 48, // Height: chord area (24) + padding (4) + text line (~20)
+              height: totalHeight,
             ),
             
-            // Lyrics layer (Non-positioned determines size)
             Padding(
-              padding: EdgeInsets.only(top: 28, left: paddingLeft),
+              padding: EdgeInsets.only(top: topPadding, left: paddingLeft),
               child: Text(
                 lyricText,
                 style: lyricStyle,
@@ -107,19 +112,15 @@ class LyricLineWithChords extends StatelessWidget {
   }
 
   List<Widget> _buildReadOnlyChords(TextPainter textPainter, double paddingLeft) {
-    // Implementation for read-only chords considering paddingLeft
-    // For now, assuming standard position 0 means start of text
+    final chordFontSize = fontSize * 0.875; // Slightly smaller than lyrics
+    final estimatedCharWidth = fontSize * 0.6; // Approximate monospace width
     return chordLine.chords.map((chordData) {
       double offset;
       if (chordData.position < 0) {
-         // Extrapolate for negative positions
-         // This assumes monospace char width - requires recalculation or passing charWidth
-         const double estimatedCharWidth = 9.6; // Approximate for 16px monospace
          offset = paddingLeft + chordData.position * estimatedCharWidth;
       } else if (chordData.position < lyricText.length) {
          offset = paddingLeft + _getCharacterOffset(textPainter, chordData.position);
       } else {
-         const double estimatedCharWidth = 9.6;
          offset = paddingLeft + textPainter.width + (chordData.position - lyricText.length) * estimatedCharWidth;
       }
 
@@ -128,10 +129,10 @@ class LyricLineWithChords extends StatelessWidget {
         top: 0,
         child: Text(
           chordData.chord,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold, 
             color: Colors.blue,
-            fontSize: 14,
+            fontSize: chordFontSize,
           ),
         ),
       );
@@ -139,7 +140,8 @@ class LyricLineWithChords extends StatelessWidget {
   }
 
   List<Widget> _buildInteractiveChords(TextPainter textPainter, double charWidth, int minSlot, int maxSlot, double paddingLeft) {
-    final widgets = <Widget>[];
+    final emptyTargets = <Widget>[];
+    final chordWidgets = <Widget>[];
     
     // Iterate from minSlot to maxSlot to cover entire screen width
     for (int position = minSlot; position < maxSlot; position++) {
@@ -158,16 +160,29 @@ class LyricLineWithChords extends StatelessWidget {
           .where((c) => c.position == position)
           .firstOrNull;
       
-      widgets.add(
-        Positioned(
-          top: 0,
-          left: offset,
-          child: _buildDragTarget(position, existingChord?.chord),
-        ),
-      );
+      if (existingChord != null) {
+        // Chord widgets rendered LAST (on top) with full 32px size
+        chordWidgets.add(
+          Positioned(
+            top: 0,
+            left: offset,
+            child: _buildDragTarget(position, existingChord.chord, charWidth),
+          ),
+        );
+      } else {
+        // Empty drop targets rendered FIRST (below) with charWidth size
+        emptyTargets.add(
+          Positioned(
+            top: 0,
+            left: offset,
+            child: _buildDragTarget(position, null, charWidth),
+          ),
+        );
+      }
     }
     
-    return widgets;
+    // Empty targets first (bottom layer), then chord widgets on top
+    return [...emptyTargets, ...chordWidgets];
   }
 
   double _getCharacterOffset(TextPainter textPainter, int position) {
@@ -185,15 +200,20 @@ class LyricLineWithChords extends StatelessWidget {
     return offset.dx;
   }
 
-  Widget _buildDragTarget(int position, String? currentChord) {
+  Widget _buildDragTarget(int position, String? currentChord, double charWidth) {
+    // Chord targets get large size (32px), empty targets use charWidth to avoid overlap
+    const double chordTargetSize = 32.0;
+    final double targetWidth = currentChord != null ? chordTargetSize : charWidth;
+    final double targetHeight = currentChord != null ? chordTargetSize : 24.0;
+
     return DragTarget<Map<String, dynamic>>(
       onAcceptWithDetails: (details) => onChordAdded?.call(lineIndex, position, details.data),
       builder: (context, candidateData, rejectedData) {
         final isCandidate = candidateData.isNotEmpty;
 
         return Container(
-          width: 24,  // Square for better mobile UX
-          height: 24, // Square - doesn't overlap lyrics below
+          width: targetWidth,
+          height: targetHeight,
           decoration: BoxDecoration(
             border: isCandidate
                 ? Border.all(color: Colors.blue, width: 3)
@@ -208,12 +228,17 @@ class LyricLineWithChords extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
           child: currentChord != null
-              ? Draggable<Map<String, dynamic>>(
-                  data: {
-                    'chord': currentChord,
-                    'fromLine': lineIndex,
-                    'fromPos': position,
+              ? GestureDetector(
+                  onTap: () {
+                    onChordRemoved?.call(lineIndex, position);
                   },
+                  child: Draggable<Map<String, dynamic>>(
+                    data: {
+                      'chord': currentChord,
+                      'fromLine': lineIndex,
+                      'fromPos': position,
+                    },
+                    dragAnchorStrategy: pointerDragAnchorStrategy,
                   feedback: Material(
                     elevation: 6,
                     borderRadius: BorderRadius.circular(20),
@@ -235,30 +260,41 @@ class LyricLineWithChords extends StatelessWidget {
                         currentChord,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: 18, // Large feedback text
                           color: Colors.white,
                         ),
                       ),
                     ),
                   ),
-                  childWhenDragging: const SizedBox.shrink(),
-                  child: GestureDetector(
-                    onTap: () => onChordRemoved?.call(lineIndex, position),
-                    behavior: HitTestBehavior.opaque, // Makes entire area tappable
-                    child: SizedBox.expand( // Fills entire 24x24px container
-                      child: Center(
-                        child: Text(
-                          currentChord,
-                          style: TextStyle(
-                            color: Colors.blue.shade900,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12, // Slightly smaller to fit in 24px
-                          ),
-                          overflow: TextOverflow.visible,
-                          softWrap: false,
+                  childWhenDragging: Container(
+                    width: chordTargetSize,
+                    height: chordTargetSize,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  child: Container(
+                    width: chordTargetSize,
+                    height: chordTargetSize,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    alignment: Alignment.center,
+                    child: IgnorePointer(
+                      child: Text(
+                        currentChord,
+                        style: TextStyle(
+                          color: Colors.blue.shade900,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
                         ),
+                        overflow: TextOverflow.visible,
+                        softWrap: false,
                       ),
                     ),
+                  ),
                   ),
                 )
               : null,

@@ -6,6 +6,7 @@ import 'song_viewer_screen.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../widgets/background_wrapper.dart';
+import '../main.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -133,6 +134,18 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
           ),
           backgroundColor: Colors.transparent, // Make AppBar transparent
           elevation: 0,
+          actions: [
+            IconButton(
+              icon: Icon(
+                CifrasApp.of(context)?.isDarkMode ?? false
+                    ? Icons.light_mode
+                    : Icons.dark_mode,
+              ),
+              onPressed: () {
+                CifrasApp.of(context)?.toggleTheme();
+              },
+            ),
+          ],
           bottom: TabBar(
             controller: _tabController,
             tabs: const [
